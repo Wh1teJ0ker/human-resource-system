@@ -1,7 +1,8 @@
 # Human Resource System
 
 ## 项目简介
-此项目为人力资源管理系统，包含前端和后端部分。前端使用 Vue.js 和 Ant Design Vue 开发，后端使用 Spring Boot 开发。以下是如何使用 Docker 构建并运行该项目的详细说明。
+学校课程设计练手的小玩意，难度不高，仅供参考
+SpringBoot+Vue
 
 ---
 
