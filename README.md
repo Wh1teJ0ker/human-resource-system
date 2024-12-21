@@ -2,7 +2,8 @@
 
 ## 项目简介
 学校课程设计练手的小玩意，难度不高，仅供参考
-SpringBoot+Vue
+
+SpringBoot+Vue+Nginx
 
 ---
 
