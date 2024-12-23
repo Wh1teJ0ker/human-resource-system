@@ -5,11 +5,11 @@
         <h1>修改管理员账户</h1>
         <a-form :form="form" @submit="handleSubmit" class="account-form">
           <a-form-item label="用户名" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
-            <a-input v-model:value="form.username" placeholder="请输入新的用户名" />
+            <a-input v-model="form.username" placeholder="请输入新的用户名" />
           </a-form-item>
 
           <a-form-item label="密码" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
-            <a-input v-model:value="form.password" type="password" placeholder="请输入新的密码" />
+            <a-input v-model="form.password" type="password" placeholder="请输入新的密码" />
           </a-form-item>
 
           <a-form-item :wrapper-col="{ span: 14, offset: 6 }">
@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'AccountSettings',
   data() {
@@ -40,7 +42,7 @@ export default {
     };
   },
   methods: {
-    handleSubmit(e) {
+    async handleSubmit(e) {
       e.preventDefault();
 
       // 简单的表单验证
@@ -52,25 +54,23 @@ export default {
       // 设置按钮加载状态
       this.loading = true;
 
-      // 模拟 API 请求（这里可以调用后端接口来保存更改）
-      setTimeout(() => {
-        // 假设在此处进行后端 API 调用
-        // axios.post('/api/account/updatePassword', {
-        //   username: this.form.username,
-        //   password: this.form.password,
-        // }).then(response => {
-        //   this.$message.success('管理员账户修改成功');
-        // }).catch(error => {
-        //   this.$message.error('账户修改失败');
-        // });
+      try {
+        // 调用后端 API 更新管理员账户
+        await axios.post('/api/account/updatePassword', {
+          username: this.form.username,
+          password: this.form.password,
+        });
 
-        // 模拟本地保存用户名
-        localStorage.setItem('username', this.form.username);
+        // 显示成功信息
         this.$message.success('管理员账户修改成功');
-        
+      } catch (error) {
+        // 处理错误
+        console.error(error);
+        this.$message.error('账户修改失败，请稍后再试');
+      } finally {
         // 重置加载状态
         this.loading = false;
-      }, 1500); // 模拟延迟，假设后端处理时间为1.5秒
+      }
     },
   },
 };

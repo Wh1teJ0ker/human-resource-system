@@ -72,7 +72,7 @@ export default {
           title: '操作',
           dataIndex: 'action',
           key: 'action',
-          scopedSlots: { customRender: 'action' },
+          scopedSlots: { customRender: 'action' },  // 操作列自定义渲染
         },
       ],
       // 添加部门 Modal

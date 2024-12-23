@@ -134,7 +134,7 @@ export default {
   methods: {
     // 获取请假记录列表
     fetchLeaveRecords() {
-      axios.get('/api/leaves')
+      axios.get('/api/leaverequests')
         .then(response => {
           this.leaveRecords = response.data;
         })
@@ -160,7 +160,7 @@ export default {
     },
     // 添加请假记录
     addLeave() {
-      axios.post('/api/leaves', this.addForm)
+      axios.post('/api/leaverequests', this.addForm)
         .then(() => {
           this.fetchLeaveRecords();  // 更新请假记录列表
           this.cancelAddModal();      // 关闭 Modal
@@ -187,7 +187,7 @@ export default {
     },
     // 编辑请假记录（审批）
     editLeave() {
-      axios.put(`/api/leaves/${this.editForm.id}`, this.editForm)
+      axios.put(`/api/leaverequests/${this.editForm.id}`, this.editForm)
         .then(() => {
           this.fetchLeaveRecords();  // 更新请假记录列表
           this.cancelEditModal();     // 关闭 Modal
@@ -200,7 +200,7 @@ export default {
     },
     // 删除请假记录
     deleteLeave(id) {
-      axios.delete(`/api/leaves/${id}`)
+      axios.delete(`/api/leaverequests/${id}`)
         .then(() => {
           this.fetchLeaveRecords();  // 更新请假记录列表
           this.$message.success('请假记录删除成功');

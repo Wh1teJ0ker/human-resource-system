@@ -157,10 +157,10 @@ export default {
     // 添加薪资记录
     addSalary() {
       axios.post('/api/salaries', this.addForm)
-        .then(() => {
+        .then(response => {
           this.fetchSalaryRecords();  // 更新薪资记录列表
           this.cancelAddModal();      // 关闭 Modal
-          this.$message.success('薪资记录添加成功');
+          this.$message.success(response.data.message || '薪资记录添加成功');
         })
         .catch(error => {
           console.error('添加薪资记录失败:', error);
@@ -186,10 +186,10 @@ export default {
     // 编辑薪资记录
     editSalary() {
       axios.put(`/api/salaries/${this.editForm.id}`, this.editForm)
-        .then(() => {
+        .then(response => {
           this.fetchSalaryRecords();  // 更新薪资记录列表
           this.cancelEditModal();     // 关闭 Modal
-          this.$message.success('薪资记录编辑成功');
+          this.$message.success(response.data.message || '薪资记录编辑成功');
         })
         .catch(error => {
           console.error('编辑薪资记录失败:', error);
@@ -199,9 +199,9 @@ export default {
     // 删除薪资记录
     deleteSalary(id) {
       axios.delete(`/api/salaries/${id}`)
-        .then(() => {
+        .then(response => {
           this.fetchSalaryRecords();  // 更新薪资记录列表
-          this.$message.success('薪资记录删除成功');
+          this.$message.success(response.data.message || '薪资记录删除成功');
         })
         .catch(error => {
           console.error('删除薪资记录失败:', error);
