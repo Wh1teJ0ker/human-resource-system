@@ -5,7 +5,7 @@ import Antd from 'ant-design-vue';
 //import 'ant-design-vue/dist/antd.css';  // 你已经注释掉了这一行，使用了reset.css
 import "ant-design-vue/dist/reset.css";
 import router from './router';  // 导入路由
-
+import { Button } from 'ant-design-vue';
 // 创建 Vue 3 应用实例
 const app = createApp(App);
 
@@ -16,6 +16,12 @@ app.use(Antd);
 Object.keys(Icons).forEach(key => {
   app.component(key, Icons[key]);
 });
+
+export default {
+  components: {
+    'a-button': Button,
+  },
+};
 
 // 使用路由
 app.use(router);

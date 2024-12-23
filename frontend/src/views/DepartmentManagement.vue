@@ -14,9 +14,9 @@
           row-key="id"
           pagination
         >
-          <template v-slot:action="{ record }">
-            <a-button @click="showEditModal(record)">编辑</a-button>
-            <a-button type="danger" @click="deleteDepartment(record.id)">删除</a-button>
+          <template #action="{ record }">
+            <a-button type="link" @click="showEditModal(record)">编辑</a-button>
+            <a-button type="link" danger @click="confirmDelete(record.id)">删除</a-button>
           </template>
         </a-table>
 
@@ -70,9 +70,8 @@ export default {
         },
         {
           title: '操作',
-          dataIndex: 'action',
           key: 'action',
-          scopedSlots: { customRender: 'action' },  // 操作列自定义渲染
+          slots: { customRender: 'action' }, // 操作列自定义渲染
         },
       ],
       // 添加部门 Modal
@@ -145,6 +144,19 @@ export default {
           this.$message.error('编辑部门失败');
         });
     },
+    // 确认删除部门
+    confirmDelete(id) {
+      this.$confirm({
+        title: '确定删除该部门吗？',
+        content: '删除后将无法恢复',
+        okText: '确定',
+        okType: 'danger',
+        cancelText: '取消',
+        onOk: () => {
+          this.deleteDepartment(id);
+        },
+      });
+    },
     // 删除部门
     deleteDepartment(id) {
       axios.delete(`/api/departments/${id}`)
@@ -172,6 +184,9 @@ export default {
 }
 
 h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
   color: #001529;
 }
 

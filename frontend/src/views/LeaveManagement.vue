@@ -82,38 +82,14 @@ export default {
   name: 'LeaveManagement',
   data() {
     return {
-      // 请假记录列表
       leaveRecords: [],
-      // 表格列定义
       columns: [
-        {
-          title: '员工姓名',
-          dataIndex: 'employeeName',
-          key: 'employeeName',
-        },
-        {
-          title: '请假类型',
-          dataIndex: 'leaveType',
-          key: 'leaveType',
-        },
-        {
-          title: '请假日期',
-          dataIndex: 'leaveDate',
-          key: 'leaveDate',
-        },
-        {
-          title: '审批状态',
-          dataIndex: 'status',
-          key: 'status',
-        },
-        {
-          title: '操作',
-          dataIndex: 'action',
-          key: 'action',
-          scopedSlots: { customRender: 'action' },
-        },
+        { title: '员工姓名', dataIndex: 'employeeName', key: 'employeeName' },
+        { title: '请假类型', dataIndex: 'leaveType', key: 'leaveType' },
+        { title: '请假日期', dataIndex: 'leaveDate', key: 'leaveDate' },
+        { title: '审批状态', dataIndex: 'status', key: 'status' },
+        { title: '操作', dataIndex: 'action', key: 'action', scopedSlots: { customRender: 'action' } },
       ],
-      // 添加请假记录 Modal
       isAddModalVisible: false,
       addForm: {
         employeeName: '',
@@ -122,7 +98,6 @@ export default {
         endDate: null,
         reason: '',
       },
-      // 编辑请假记录 Modal
       isEditModalVisible: false,
       editForm: {
         id: '',
@@ -132,99 +107,74 @@ export default {
     };
   },
   methods: {
-    // 获取请假记录列表
     fetchLeaveRecords() {
-      axios.get('/api/leaverequests')
-        .then(response => {
-          this.leaveRecords = response.data;
-        })
-        .catch(error => {
-          console.error('获取请假记录失败:', error);
-          this.$message.error('获取请假记录失败');
-        });
+      axios.get('/api/leaverequests').then(response => {
+        this.leaveRecords = response.data;
+      }).catch(error => {
+        console.error('获取请假记录失败:', error);
+        this.$message.error('获取请假记录失败');
+      });
     },
-    // 显示添加请假记录的 Modal
-    showAddModal() {
-      this.isAddModalVisible = true;
-    },
-    // 取消添加请假记录
+    showAddModal() { this.isAddModalVisible = true; },
     cancelAddModal() {
       this.isAddModalVisible = false;
-      this.addForm = {
-        employeeName: '',
-        leaveType: '',
-        startDate: null,
-        endDate: null,
-        reason: '',
-      };
+      this.addForm = { employeeName: '', leaveType: '', startDate: null, endDate: null, reason: '' };
     },
-    // 添加请假记录
     addLeave() {
-      axios.post('/api/leaverequests', this.addForm)
-        .then(() => {
-          this.fetchLeaveRecords();  // 更新请假记录列表
-          this.cancelAddModal();      // 关闭 Modal
-          this.$message.success('请假记录提交成功');
-        })
-        .catch(error => {
-          console.error('提交请假记录失败:', error);
-          this.$message.error('提交请假记录失败');
-        });
+      axios.post('/api/leaverequests', this.addForm).then(() => {
+        this.fetchLeaveRecords();
+        this.cancelAddModal();
+        this.$message.success('请假记录提交成功');
+      }).catch(error => {
+        console.error('提交请假记录失败:', error);
+        this.$message.error('提交请假记录失败');
+      });
     },
-    // 显示编辑请假记录的 Modal
     showEditModal(record) {
       this.editForm = { ...record };
       this.isEditModalVisible = true;
     },
-    // 取消编辑请假记录
     cancelEditModal() {
       this.isEditModalVisible = false;
-      this.editForm = {
-        id: '',
-        status: '',
-        comment: '',
-      };
+      this.editForm = { id: '', status: '', comment: '' };
     },
-    // 编辑请假记录（审批）
     editLeave() {
-      axios.put(`/api/leaverequests/${this.editForm.id}`, this.editForm)
-        .then(() => {
-          this.fetchLeaveRecords();  // 更新请假记录列表
-          this.cancelEditModal();     // 关闭 Modal
-          this.$message.success('请假记录审批成功');
-        })
-        .catch(error => {
-          console.error('审批请假记录失败:', error);
-          this.$message.error('审批请假记录失败');
-        });
+      axios.put(`/api/leaverequests/${this.editForm.id}`, this.editForm).then(() => {
+        this.fetchLeaveRecords();
+        this.cancelEditModal();
+        this.$message.success('请假记录审批成功');
+      }).catch(error => {
+        console.error('审批请假记录失败:', error);
+        this.$message.error('审批请假记录失败');
+      });
     },
-    // 删除请假记录
     deleteLeave(id) {
-      axios.delete(`/api/leaverequests/${id}`)
-        .then(() => {
-          this.fetchLeaveRecords();  // 更新请假记录列表
-          this.$message.success('请假记录删除成功');
-        })
-        .catch(error => {
-          console.error('删除请假记录失败:', error);
-          this.$message.error('删除请假记录失败');
-        });
+      axios.delete(`/api/leaverequests/${id}`).then(() => {
+        this.fetchLeaveRecords();
+        this.$message.success('请假记录删除成功');
+      }).catch(error => {
+        console.error('删除请假记录失败:', error);
+        this.$message.error('删除请假记录失败');
+      });
     },
   },
-  mounted() {
-    this.fetchLeaveRecords();  // 页面加载时获取请假记录列表
-  },
+  mounted() { this.fetchLeaveRecords(); },
 };
 </script>
 
 <style scoped>
 .leave-container {
-  padding: 20px;
-  background: #fff;
-  min-height: 360px;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
 }
 
 h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
   color: #001529;
 }
 
@@ -233,6 +183,23 @@ h1 {
 }
 
 .a-button {
-  margin-right: 10px;
+  margin-right: 8px;
+}
+
+.a-modal {
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+}
+
+.a-button[type="primary"] {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.a-button[type="danger"] {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: #fff;
 }
 </style>

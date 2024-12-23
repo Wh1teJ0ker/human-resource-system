@@ -14,9 +14,9 @@
           row-key="id"
           pagination
         >
-          <template v-slot:action="{ record }">
-            <a-button @click="showEditModal(record)">编辑</a-button>
-            <a-button type="danger" @click="deleteAttendance(record.id)">删除</a-button>
+          <template #action="{ record }">
+            <a-button type="link" @click="showEditModal(record)">编辑</a-button>
+            <a-button type="link" danger @click="confirmDelete(record.id)">删除</a-button>
           </template>
         </a-table>
 
@@ -28,8 +28,8 @@
           @cancel="cancelAddModal"
         >
           <a-form :form="addForm" label-col="{ span: 4 }">
-            <a-form-item label="员工姓名">
-              <a-input v-model:value="addForm.employeeName" />
+            <a-form-item label="员工 ID">
+              <a-input v-model:value="addForm.employeeId" />
             </a-form-item>
             <a-form-item label="考勤日期">
               <a-date-picker v-model:value="addForm.attendanceDate" />
@@ -52,8 +52,8 @@
           @cancel="cancelEditModal"
         >
           <a-form :form="editForm" label-col="{ span: 4 }">
-            <a-form-item label="员工姓名">
-              <a-input v-model:value="editForm.employeeName" />
+            <a-form-item label="员工 ID">
+              <a-input v-model:value="editForm.employeeId" />
             </a-form-item>
             <a-form-item label="考勤日期">
               <a-date-picker v-model:value="editForm.attendanceDate" />
@@ -85,9 +85,9 @@ export default {
       // 表格列定义
       columns: [
         {
-          title: '员工姓名',
-          dataIndex: 'employeeName',
-          key: 'employeeName',
+          title: '员工 ID',
+          dataIndex: 'employeeId',
+          key: 'employeeId',
         },
         {
           title: '考勤日期',
@@ -109,7 +109,7 @@ export default {
       // 添加考勤记录 Modal
       isAddModalVisible: false,
       addForm: {
-        employeeName: '',
+        employeeId: '',
         attendanceDate: '',
         attendanceStatus: 'present',
       },
@@ -117,7 +117,7 @@ export default {
       isEditModalVisible: false,
       editForm: {
         id: '',
-        employeeName: '',
+        employeeId: '',
         attendanceDate: '',
         attendanceStatus: 'present',
       },
@@ -143,7 +143,7 @@ export default {
     cancelAddModal() {
       this.isAddModalVisible = false;
       this.addForm = {
-        employeeName: '',
+        employeeId: '',
         attendanceDate: '',
         attendanceStatus: 'present',
       };
@@ -171,7 +171,7 @@ export default {
       this.isEditModalVisible = false;
       this.editForm = {
         id: '',
-        employeeName: '',
+        employeeId: '',
         attendanceDate: '',
         attendanceStatus: 'present',
       };
@@ -210,12 +210,17 @@ export default {
 
 <style scoped>
 .attendance-container {
-  padding: 20px;
-  background: #fff;
-  min-height: 360px;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
 }
 
 h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
   color: #001529;
 }
 
@@ -224,6 +229,23 @@ h1 {
 }
 
 .a-button {
-  margin-right: 10px;
+  margin-right: 8px;
+}
+
+.a-modal {
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+}
+
+.a-button[type="primary"] {
+  background-color: #1890ff;
+  border-color: #1890ff;
+}
+
+.a-button[type="danger"] {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: #fff;
 }
 </style>

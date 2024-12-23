@@ -20,7 +20,9 @@ public class AttendanceService {
 
     // 获取所有考勤记录
     public List<Attendance> getAllAttendanceRecords() {
-        String sql = "SELECT * FROM attendances";
+        String sql = "SELECT a.id, a.employee_id, e.name AS employee_name, a.attendance_date, a.attendance_status " +
+                     "FROM attendances a " +
+                     "JOIN employees e ON a.employee_id = e.id";
         return jdbcTemplate.query(sql, new AttendanceRowMapper());
     }
 

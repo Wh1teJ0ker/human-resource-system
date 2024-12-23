@@ -3,15 +3,20 @@
     <a-layout-content>
       <div class="employee-container">
         <h1>员工管理</h1>
-        
+
         <!-- 添加员工按钮 -->
         <a-button type="primary" @click="showAddModal">添加员工</a-button>
-        
+
         <!-- 员工列表 -->
         <a-table :columns="columns" :data-source="employees" row-key="id">
-          <template #action="{ record }">
-            <a-button @click="editEmployee(record)">编辑</a-button>
-            <a-button type="danger" @click="deleteEmployee(record.id)">删除</a-button>
+          <!-- 使用 v-slot:bodyCell 来定义操作列 -->
+          <template #bodyCell="{ column, record }">
+            <span v-if="column.dataIndex === 'action'">
+              <!-- 编辑按钮 -->
+              <a-button type="link" @click="editEmployee(record)">编辑</a-button>
+              <!-- 删除按钮 -->
+              <a-button type="link" danger @click="deleteEmployee(record.id)">删除</a-button>
+            </span>
           </template>
         </a-table>
 
@@ -75,7 +80,6 @@ export default {
       {
         title: '操作',
         dataIndex: 'action',
-        scopedSlots: { customRender: 'action' },
       },
     ];
 
@@ -99,7 +103,7 @@ export default {
     // 显示编辑员工弹窗
     const editEmployee = (record) => {
       modalTitle.value = '编辑员工';
-      form.value = { ...record };
+      form.value = { ...record };  // 填充表单数据
       isModalVisible.value = true;
     };
 
@@ -108,11 +112,19 @@ export default {
       try {
         if (form.value.id) {
           // 编辑员工
-          await axios.put(`/api/employees/${form.value.id}`, form.value);
+          await axios.put(`/api/employees/${form.value.id}`, {
+            name: form.value.name,
+            position: form.value.position,
+            department: form.value.department,
+          });
           message.success('员工信息更新成功');
         } else {
           // 添加员工
-          await axios.post('/api/employees', form.value);
+          await axios.post('/api/employees', {
+            name: form.value.name,
+            position: form.value.position,
+            department: form.value.department,
+          });
           message.success('员工添加成功');
         }
         fetchEmployees(); // 刷新员工列表
@@ -167,7 +179,9 @@ export default {
 }
 
 h1 {
-  color: #001529;
+  font-size: 24px;
+  font-weight: bold;
   margin-bottom: 20px;
+  color: #001529;
 }
 </style>

@@ -8,6 +8,7 @@ public class Attendance {
     private Long employeeId; // 外键，引用 employees 表的 id
     private LocalDate attendanceDate; // 考勤日期
     private String attendanceStatus; // 出勤状态（present, absent, late）
+    
 
     // Getters and Setters
     public Long getId() {
