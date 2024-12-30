@@ -1,51 +1,32 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80"
-    networks:
-      - hr-network
-    depends_on:
-      - backend   # 确保前端启动之前，后端已经启动
-
+  # 后端服务
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ./backend  # 后端代码目录
+      dockerfile: Dockerfile  # 后端 Dockerfile 路径
+    container_name: springboot-backend
     ports:
-      - "8081:8080"
+      - "8080:8080"  # 映射端口到宿主机
     networks:
-      - hr-network
-    depends_on:
-      - db   # 确保后端启动之前，数据库已经启动
+      - mynetwork
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/hr_system_db
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      - SPRING_PROFILES_ACTIVE=prod  # 可根据需要设置环境变量
 
-  db:
-    image: mysql:5.7
-    container_name: hr_system_db
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: hr_system_db
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend  # 前端代码目录
+      dockerfile: Dockerfile  # 前端 Dockerfile 路径
+    container_name: vue-frontend
     ports:
-      - "3306:3306"
+      - "8081:80"  # 映射端口到宿主机
     networks:
-      - hr-network
-    volumes:
-      - ./db-data:/var/lib/mysql
+      - mynetwork
+    depends_on:
+      - backend  # 确保后端服务先启动
 
 networks:
-  hr-network:
-    driver: bridge
-
-volumes:
-  db-data:
-    driver: local
+  mynetwork:
+    driver: bridge  # 默认网络模式
