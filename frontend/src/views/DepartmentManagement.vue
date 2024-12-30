@@ -4,46 +4,32 @@
       <div class="department-container">
         <h1>部门管理</h1>
 
-        <!-- 新增部门按钮 -->
+        <!-- 添加部门按钮 -->
         <a-button type="primary" @click="showAddModal">添加部门</a-button>
 
         <!-- 部门列表 -->
-        <a-table
-          :columns="columns"
-          :data-source="departments"
-          row-key="id"
-          pagination
-        >
-          <template #action="{ record }">
-            <a-button type="link" @click="showEditModal(record)">编辑</a-button>
-            <a-button type="link" danger @click="confirmDelete(record.id)">删除</a-button>
+        <a-table :columns="columns" :data-source="departments" row-key="id">
+          <!-- 使用 v-slot:bodyCell 来定义操作列 -->
+          <template #bodyCell="{ column, record }">
+            <span v-if="column.dataIndex === 'action'">
+              <!-- 编辑按钮 -->
+              <a-button type="link" @click="editDepartment(record)">编辑</a-button>
+              <!-- 删除按钮 -->
+              <a-button type="link" danger @click="deleteDepartment(record.id)">删除</a-button>
+            </span>
           </template>
         </a-table>
 
-        <!-- 添加部门 Modal -->
+        <!-- 添加/编辑部门弹窗 -->
         <a-modal
-          v-model:visible="isAddModalVisible"
-          title="添加部门"
-          @ok="addDepartment"
-          @cancel="cancelAddModal"
+          v-model:visible="isModalVisible"
+          :title="modalTitle"
+          @ok="handleOk"
+          @cancel="handleCancel"
         >
-          <a-form :form="addForm" label-col="{ span: 4 }">
-            <a-form-item label="部门名称">
-              <a-input v-model:value="addForm.departmentName" />
-            </a-form-item>
-          </a-form>
-        </a-modal>
-
-        <!-- 编辑部门 Modal -->
-        <a-modal
-          v-model:visible="isEditModalVisible"
-          title="编辑部门"
-          @ok="editDepartment"
-          @cancel="cancelEditModal"
-        >
-          <a-form :form="editForm" label-col="{ span: 4 }">
-            <a-form-item label="部门名称">
-              <a-input v-model:value="editForm.departmentName" />
+          <a-form :form="form" layout="vertical">
+            <a-form-item label="部门名称" :name="'departmentName'">
+              <a-input v-model:value="form.departmentName" />
             </a-form-item>
           </a-form>
         </a-modal>
@@ -53,125 +39,114 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+import { message } from 'ant-design-vue';
 import axios from 'axios';
 
 export default {
   name: 'DepartmentManagement',
-  data() {
-    return {
-      // 部门列表
-      departments: [],
-      // 表格列定义
-      columns: [
-        {
-          title: '部门名称',
-          dataIndex: 'departmentName',
-          key: 'departmentName',
-        },
-        {
-          title: '操作',
-          key: 'action',
-          slots: { customRender: 'action' }, // 操作列自定义渲染
-        },
-      ],
-      // 添加部门 Modal
-      isAddModalVisible: false,
-      addForm: {
-        departmentName: '',
+  setup() {
+    // 响应式数据
+    const departments = ref([]);
+    const isModalVisible = ref(false);
+    const form = ref({
+      id: null,
+      departmentName: '',
+    });
+    const modalTitle = ref('添加部门');
+
+    // 表格列配置
+    const columns = [
+      {
+        title: '部门名称',
+        dataIndex: 'departmentName',
       },
-      // 编辑部门 Modal
-      isEditModalVisible: false,
-      editForm: {
-        id: '',
-        departmentName: '',
+      {
+        title: '操作',
+        dataIndex: 'action',
       },
-    };
-  },
-  methods: {
+    ];
+
     // 获取部门列表
-    fetchDepartments() {
-      axios.get('/api/departments')
-        .then(response => {
-          this.departments = response.data;
-        })
-        .catch(error => {
-          console.error('获取部门列表失败:', error);
-          this.$message.error('获取部门列表失败');
-        });
-    },
-    // 显示添加部门的 Modal
-    showAddModal() {
-      this.isAddModalVisible = true;
-    },
-    // 取消添加部门
-    cancelAddModal() {
-      this.isAddModalVisible = false;
-      this.addForm.departmentName = '';
-    },
-    // 添加部门
-    addDepartment() {
-      axios.post('/api/departments', this.addForm)
-        .then(() => {
-          this.fetchDepartments();  // 更新部门列表
-          this.cancelAddModal();    // 关闭 Modal
-          this.$message.success('部门添加成功');
-        })
-        .catch(error => {
-          console.error('添加部门失败:', error);
-          this.$message.error('添加部门失败');
-        });
-    },
-    // 显示编辑部门的 Modal
-    showEditModal(record) {
-      this.editForm = { ...record };
-      this.isEditModalVisible = true;
-    },
-    // 取消编辑部门
-    cancelEditModal() {
-      this.isEditModalVisible = false;
-      this.editForm = { id: '', departmentName: '' };
-    },
-    // 编辑部门
-    editDepartment() {
-      axios.put(`/api/departments/${this.editForm.id}`, this.editForm)
-        .then(() => {
-          this.fetchDepartments();  // 更新部门列表
-          this.cancelEditModal();   // 关闭 Modal
-          this.$message.success('部门编辑成功');
-        })
-        .catch(error => {
-          console.error('编辑部门失败:', error);
-          this.$message.error('编辑部门失败');
-        });
-    },
-    // 确认删除部门
-    confirmDelete(id) {
-      this.$confirm({
-        title: '确定删除该部门吗？',
-        content: '删除后将无法恢复',
-        okText: '确定',
-        okType: 'danger',
-        cancelText: '取消',
-        onOk: () => {
-          this.deleteDepartment(id);
-        },
-      });
-    },
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get('/api/departments');
+        departments.value = response.data;
+      } catch (error) {
+        message.error('获取部门列表失败');
+      }
+    };
+
+    // 显示添加部门弹窗
+    const showAddModal = () => {
+      modalTitle.value = '添加部门';
+      form.value = { id: null, departmentName: '' };
+      isModalVisible.value = true;
+    };
+
+    // 显示编辑部门弹窗
+    const editDepartment = (record) => {
+      modalTitle.value = '编辑部门';
+      form.value = { ...record }; // 填充表单数据
+      isModalVisible.value = true;
+    };
+
+    // 处理弹窗确认
+    const handleOk = async () => {
+      try {
+        if (form.value.id) {
+          // 编辑部门
+          await axios.put(`/api/departments/${form.value.id}`, {
+            departmentName: form.value.departmentName,
+          });
+          message.success('部门信息更新成功');
+        } else {
+          // 添加部门
+          await axios.post('/api/departments', {
+            departmentName: form.value.departmentName,
+          });
+          message.success('部门添加成功');
+        }
+        fetchDepartments(); // 刷新部门列表
+        handleCancel();
+      } catch (error) {
+        message.error('操作失败');
+      }
+    };
+
+    // 处理弹窗取消
+    const handleCancel = () => {
+      isModalVisible.value = false;
+    };
+
     // 删除部门
-    deleteDepartment(id) {
-      axios.delete(`/api/departments/${id}`)
-        .then(() => {
-          this.fetchDepartments();  // 更新部门列表
-          this.$message.success('部门删除成功');
-        })
-        .catch(error => {
-          console.error('删除部门失败:', error);
-          this.$message.error('删除部门失败');
-        });
-    },
-  },
-  mounted() {
-    this.fetchDepartments();  // 页面加载时获取部门列表
+    const deleteDepartment = async (id) => {
+      try {
+        await axios.delete(`/api/departments/${id}`);
+        message.success('部门删除成功');
+        fetchDepartments(); // 刷新部门列表
+      } catch (error) {
+        message.error('删除部门失败');
+      }
+    };
+
+    // 页面加载时获取部门列表
+    onMounted(() => {
+      fetchDepartments();
+    });
+
+    return {
+      departments,
+      isModalVisible,
+      form,
+      modalTitle,
+      columns,
+      showAddModal,
+      editDepartment,
+      handleOk,
+      handleCancel,
+      deleteDepartment,
+    };
   },
 };
 </script>
@@ -188,13 +163,5 @@ h1 {
   font-weight: bold;
   margin-bottom: 20px;
   color: #001529;
-}
-
-.a-table {
-  margin-top: 20px;
-}
-
-.a-button {
-  margin-right: 10px;
 }
 </style>

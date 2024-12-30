@@ -14,9 +14,13 @@
           row-key="id"
           pagination
         >
-          <template v-slot:action="{ record }">
-            <a-button type="link" @click="showEditModal(record)">编辑</a-button>
-            <a-button type="link" danger @click="deleteSalary(record.id)">删除</a-button>
+          <template #bodyCell="{ column, record }">
+            <span v-if="column.dataIndex === 'action'">
+              <!-- 编辑按钮 -->
+              <a-button type="link" @click="showEditModal(record)">编辑</a-button>
+              <!-- 删除按钮 -->
+              <a-button type="link" danger @click="deleteSalary(record.id)">删除</a-button>
+            </span>
           </template>
         </a-table>
 
@@ -28,8 +32,8 @@
           @cancel="cancelAddModal"
         >
           <a-form :layout="'vertical'">
-            <a-form-item label="员工姓名">
-              <a-input v-model:value="addForm.employeeName" />
+            <a-form-item label="员工 ID">
+              <a-input v-model:value="addForm.employeeId" />
             </a-form-item>
             <a-form-item label="基本薪资">
               <a-input-number v-model:value="addForm.baseSalary" style="width: 100%" />
@@ -51,8 +55,8 @@
           @cancel="cancelEditModal"
         >
           <a-form :layout="'vertical'">
-            <a-form-item label="员工姓名">
-              <a-input v-model:value="editForm.employeeName" />
+            <a-form-item label="员工 ID">
+              <a-input v-model:value="editForm.employeeId" disabled />
             </a-form-item>
             <a-form-item label="基本薪资">
               <a-input-number v-model:value="editForm.baseSalary" style="width: 100%" />
@@ -65,164 +69,134 @@
             </a-form-item>
           </a-form>
         </a-modal>
-
       </div>
     </a-layout-content>
   </a-layout>
 </template>
 
 <script>
-import axios from "axios";
+import { ref, onMounted } from 'vue';
+import { message } from 'ant-design-vue';
+import axios from 'axios';
 
 export default {
-  name: "SalaryManagement",
-  data() {
-    return {
-      // 薪资记录列表
-      salaryRecords: [],
-      // 表格列定义
-      columns: [
-        {
-          title: "员工姓名",
-          dataIndex: "employeeName",
-          key: "employeeName",
-        },
-        {
-          title: "基本薪资",
-          dataIndex: "baseSalary",
-          key: "baseSalary",
-        },
-        {
-          title: "奖金",
-          dataIndex: "bonus",
-          key: "bonus",
-        },
-        {
-          title: "其他福利",
-          dataIndex: "benefits",
-          key: "benefits",
-        },
-        {
-          title: "操作",
-          key: "action",
-          scopedSlots: { customRender: "action" },
-        },
-      ],
-      // 添加薪资记录 Modal
-      isAddModalVisible: false,
-      addForm: {
-        employeeName: "",
-        baseSalary: 0,
-        bonus: 0,
-        benefits: 0,
-      },
-      // 编辑薪资记录 Modal
-      isEditModalVisible: false,
-      editForm: {
-        id: "",
-        employeeName: "",
-        baseSalary: 0,
-        bonus: 0,
-        benefits: 0,
-      },
+  name: 'SalaryManagement',
+  setup() {
+    // 响应式数据
+    const salaryRecords = ref([]);
+    const isAddModalVisible = ref(false);
+    const isEditModalVisible = ref(false);
+    const addForm = ref({
+      employeeId: '',
+      baseSalary: 0,
+      bonus: 0,
+      benefits: 0,
+    });
+    const editForm = ref({
+      id: '',
+      employeeId: '',
+      baseSalary: 0,
+      bonus: 0,
+      benefits: 0,
+    });
+
+    // 表格列配置
+    const columns = [
+      { title: '员工 ID', dataIndex: 'employeeId' },
+      { title: '基本薪资', dataIndex: 'baseSalary' },
+      { title: '奖金', dataIndex: 'bonus' },
+      { title: '其他福利', dataIndex: 'benefits' },
+      { title: '操作', dataIndex: 'action' }
+    ];
+
+    // 获取薪资记录
+    const fetchSalaryRecords = async () => {
+      try {
+        const response = await axios.get('/api/salaries');
+        salaryRecords.value = response.data;
+      } catch (error) {
+        message.error('获取薪资记录失败');
+      }
     };
-  },
-  methods: {
-    // 获取薪资记录列表
-    fetchSalaryRecords() {
-      axios
-        .get("/api/salaries")
-        .then((response) => {
-          this.salaryRecords = response.data;
-        })
-        .catch((error) => {
-          console.error("获取薪资记录失败:", error);
-          this.$message.error("获取薪资记录失败");
-        });
-    },
-    // 显示添加薪资记录的 Modal
-    showAddModal() {
-      this.isAddModalVisible = true;
-    },
-    // 取消添加薪资记录
-    cancelAddModal() {
-      this.isAddModalVisible = false;
-      this.resetAddForm();
-    },
-    // 重置添加表单
-    resetAddForm() {
-      this.addForm = {
-        employeeName: "",
-        baseSalary: 0,
-        bonus: 0,
-        benefits: 0,
-      };
-    },
+
+    // 显示新增薪资记录弹窗
+    const showAddModal = () => {
+      addForm.value = { employeeId: '', baseSalary: 0, bonus: 0, benefits: 0 };
+      isAddModalVisible.value = true;
+    };
+
+    // 取消新增薪资记录弹窗
+    const cancelAddModal = () => {
+      isAddModalVisible.value = false;
+    };
+
     // 添加薪资记录
-    addSalary() {
-      axios
-        .post("/api/salaries", this.addForm)
-        .then((response) => {
-          this.fetchSalaryRecords();
-          this.cancelAddModal();
-          this.$message.success(response.data.message || "薪资记录添加成功");
-        })
-        .catch((error) => {
-          console.error("添加薪资记录失败:", error);
-          this.$message.error("添加薪资记录失败");
-        });
-    },
-    // 显示编辑薪资记录的 Modal
-    showEditModal(record) {
-      this.editForm = { ...record };
-      this.isEditModalVisible = true;
-    },
-    // 取消编辑薪资记录
-    cancelEditModal() {
-      this.isEditModalVisible = false;
-      this.resetEditForm();
-    },
-    // 重置编辑表单
-    resetEditForm() {
-      this.editForm = {
-        id: "",
-        employeeName: "",
-        baseSalary: 0,
-        bonus: 0,
-        benefits: 0,
-      };
-    },
+    const addSalary = async () => {
+      try {
+        await axios.post('/api/salaries', addForm.value);
+        message.success('薪资记录添加成功');
+        fetchSalaryRecords(); // 刷新薪资记录列表
+        cancelAddModal();
+      } catch (error) {
+        message.error('添加薪资记录失败');
+      }
+    };
+
+    // 显示编辑薪资记录弹窗
+    const showEditModal = (record) => {
+      editForm.value = { ...record };
+      isEditModalVisible.value = true;
+    };
+
+    // 取消编辑薪资记录弹窗
+    const cancelEditModal = () => {
+      isEditModalVisible.value = false;
+    };
+
     // 编辑薪资记录
-    editSalary() {
-      axios
-        .put(`/api/salaries/${this.editForm.id}`, this.editForm)
-        .then((response) => {
-          this.fetchSalaryRecords();
-          this.cancelEditModal();
-          this.$message.success(response.data.message || "薪资记录编辑成功");
-        })
-        .catch((error) => {
-          console.error("编辑薪资记录失败:", error);
-          this.$message.error("编辑薪资记录失败");
-        });
-    },
+    const editSalary = async () => {
+      try {
+        await axios.put(`/api/salaries/${editForm.value.id}`, editForm.value);
+        message.success('薪资记录编辑成功');
+        fetchSalaryRecords(); // 刷新薪资记录列表
+        cancelEditModal();
+      } catch (error) {
+        message.error('编辑薪资记录失败');
+      }
+    };
+
     // 删除薪资记录
-    deleteSalary(id) {
-      axios
-        .delete(`/api/salaries/${id}`)
-        .then((response) => {
-          this.fetchSalaryRecords();
-          this.$message.success(response.data.message || "薪资记录删除成功");
-        })
-        .catch((error) => {
-          console.error("删除薪资记录失败:", error);
-          this.$message.error("删除薪资记录失败");
-        });
-    },
-  },
-  mounted() {
-    this.fetchSalaryRecords(); // 页面加载时获取薪资记录列表
-  },
+    const deleteSalary = async (id) => {
+      try {
+        await axios.delete(`/api/salaries/${id}`);
+        message.success('薪资记录删除成功');
+        fetchSalaryRecords(); // 刷新薪资记录列表
+      } catch (error) {
+        message.error('删除薪资记录失败');
+      }
+    };
+
+    // 页面加载时获取薪资记录
+    onMounted(() => {
+      fetchSalaryRecords();
+    });
+
+    return {
+      salaryRecords,
+      isAddModalVisible,
+      isEditModalVisible,
+      addForm,
+      editForm,
+      columns,
+      showAddModal,
+      cancelAddModal,
+      addSalary,
+      showEditModal,
+      cancelEditModal,
+      editSalary,
+      deleteSalary,
+    };
+  }
 };
 </script>
 
@@ -246,5 +220,9 @@ h1 {
 
 .a-button {
   margin-right: 10px;
+}
+
+.a-modal .ant-form-item {
+  margin-bottom: 16px;
 }
 </style>
