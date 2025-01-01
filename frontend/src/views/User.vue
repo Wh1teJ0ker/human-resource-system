@@ -1,83 +1,135 @@
 <template>
   <div class="user-page">
     <div class="user-info">
-      <h1>欢迎来到用户页面</h1>
-      <div class="info-item">
-        <label>您的角色是:</label>
-        <span>{{ role }}</span>
-      </div>
+      <h1>用户信息</h1>
       <div class="info-item">
         <label>用户名:</label>
-        <span>{{ username }}</span>
+        <span v-if="!isEditing">{{ userInfo.username }}</span>
+        <input v-if="isEditing" type="text" v-model="editableUserInfo.username" />
       </div>
       <div class="info-item">
         <label>电子邮件:</label>
-        <span>{{ email }}</span>
+        <span v-if="!isEditing">{{ userInfo.email }}</span>
+        <input v-if="isEditing" type="email" v-model="editableUserInfo.email" />
       </div>
       <div class="info-item">
-        <label>最后登录时间:</label>
-        <span>{{ lastLoginTime }}</span>
+        <label>角色:</label>
+        <span v-if="!isEditing">{{ userInfo.role }}</span>
+        <input v-if="isEditing" type="text" v-model="editableUserInfo.role" />
       </div>
-      
-      <button @click="isEditing = !isEditing" class="edit-button">
-        {{ isEditing ? '取消' : '修改信息' }}
-      </button>
-      
-      <div v-if="isEditing" class="edit-form">
-        <div class="form-item">
-          <label for="username">用户名:</label>
-          <input type="text" id="username" v-model="editableUsername" />
-        </div>
-        <div class="form-item">
-          <label for="email">电子邮件:</label>
-          <input type="email" id="email" v-model="editableEmail" />
-        </div>
-        <div class="form-item">
-          <label for="role">角色:</label>
-          <input type="text" id="role" v-model="editableRole" />
-        </div>
-        <button @click="saveChanges" class="save-button">保存修改</button>
+      <div class="info-item">
+        <label>部门:</label>
+        <span>{{ userInfo.departmentName }}</span>
       </div>
+
+      <h2>考勤记录</h2>
+      <div v-for="attendance in userInfo.attendances" :key="attendance.id" class="info-item">
+        <label>{{ attendance.attendanceDate }}:</label>
+        <span>{{ attendance.attendanceStatus }}</span>
+      </div>
+
+      <h2>薪资信息</h2>
+      <div class="info-item">
+        <label>基础薪资:</label>
+        <span>{{ userInfo.salary.baseSalary }}</span>
+      </div>
+      <div class="info-item">
+        <label>奖金:</label>
+        <span>{{ userInfo.salary.bonus }}</span>
+      </div>
+      <div class="info-item">
+        <label>福利:</label>
+        <span>{{ userInfo.salary.benefits }}</span>
+      </div>
+
+      <h2>请假记录</h2>
+      <div v-for="leaveRequest in userInfo.leaveRequests" :key="leaveRequest.id" class="info-item">
+        <label>{{ leaveRequest.leaveDate }}:</label>
+        <span>{{ leaveRequest.leaveType }} - {{ leaveRequest.leaveStatus }}</span>
+      </div>
+
+      <button v-if="!isEditing" @click="toggleEdit" class="edit-button">修改信息</button>
+      <button v-if="isEditing" @click="saveChanges" class="save-button">保存修改</button>
+      <button v-if="isEditing" @click="cancelEdit" class="cancel-button">取消</button>
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   name: 'UserPage',
   data() {
     return {
-      role: localStorage.getItem('userRole') || '未知角色',
-      username: localStorage.getItem('username') || '未知用户',
-      email: localStorage.getItem('email') || '未知邮箱',
-      lastLoginTime: localStorage.getItem('lastLoginTime') || '未知时间',
-      isEditing: false, // 控制是否在编辑模式
-      editableUsername: localStorage.getItem('username') || '未知用户',
-      editableEmail: localStorage.getItem('email') || '未知邮箱',
-      editableRole: localStorage.getItem('userRole') || '未知角色',
+      isEditing: false, // 控制是否处于编辑模式
+      userInfo: {
+        username: '',
+        email: '',
+        role: '',
+        departmentName: '',
+        attendances: [],
+        salary: {
+          baseSalary: 0,
+          bonus: 0,
+          benefits: 0
+        },
+        leaveRequests: []
+      },
+      editableUserInfo: {
+        username: '',
+        email: '',
+        role: ''
+      }
     };
   },
-  methods: {
-    saveChanges() {
-      localStorage.setItem('username', this.editableUsername);
-      localStorage.setItem('email', this.editableEmail);
-      localStorage.setItem('userRole', this.editableRole);
-      
-      // 更新页面中的数据
-      this.username = this.editableUsername;
-      this.email = this.editableEmail;
-      this.role = this.editableRole;
-      
-      // 退出编辑模式
-      this.isEditing = false;
-    }
+  created() {
+    this.getUserInfo();
   },
+  methods: {
+    // 获取用户信息
+    async getUserInfo() {
+      try {
+        const response = await axios.get('/api/user/info', {
+          params: { userId: 1 } // 假设用户ID是1
+        });
+        this.userInfo = response.data;
+        this.editableUserInfo = { ...this.userInfo }; // 初始化可编辑信息
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+      }
+    },
+    // 切换到编辑模式
+    toggleEdit() {
+      this.isEditing = true;
+      this.editableUserInfo = { ...this.userInfo }; // 填充当前数据
+    },
+    // 保存修改
+    async saveChanges() {
+      try {
+        await axios.put('/api/user/info', this.editableUserInfo, {
+          params: { userId: 1 } // 假设用户ID是1
+        });
+
+        // 更新成功后，保存修改的数据并退出编辑模式
+        this.userInfo = { ...this.editableUserInfo };
+        this.isEditing = false;
+      } catch (error) {
+        console.error('保存修改失败:', error);
+      }
+    },
+    // 取消编辑
+    cancelEdit() {
+      this.isEditing = false;
+      this.editableUserInfo = { ...this.userInfo }; // 取消修改恢复原始数据
+    }
+  }
 };
 </script>
 
 <style scoped>
 .user-page {
-  padding: 30px;
+  padding: 20px;
   font-family: Arial, sans-serif;
 }
 
@@ -89,9 +141,13 @@ export default {
 }
 
 h1 {
-  color: #333;
   font-size: 24px;
-  margin-bottom: 20px;
+  color: #333;
+}
+
+h2 {
+  margin-top: 20px;
+  color: #333;
 }
 
 .info-item {
@@ -103,41 +159,10 @@ h1 {
 
 label {
   font-weight: bold;
-  color: #555;
 }
 
 span {
   color: #777;
-  font-size: 16px;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.edit-button {
-  margin-top: 20px;
-  padding: 10px 15px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.edit-button:hover {
-  background-color: #45a049;
-}
-
-.edit-form {
-  margin-top: 20px;
-  padding: 20px;
-  background-color: #f1f1f1;
-  border-radius: 8px;
-}
-
-.form-item {
-  margin-bottom: 15px;
 }
 
 input {
@@ -147,16 +172,40 @@ input {
   border: 1px solid #ccc;
 }
 
-.save-button {
+.edit-button,
+.save-button,
+.cancel-button {
+  margin-top: 20px;
   padding: 10px 15px;
-  background-color: #4CAF50;
-  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.save-button:hover {
+.edit-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.edit-button:hover {
   background-color: #45a049;
+}
+
+.save-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #d32f2f;
 }
 </style>
