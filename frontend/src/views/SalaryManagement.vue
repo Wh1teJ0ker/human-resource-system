@@ -4,13 +4,22 @@
       <div class="salary-container">
         <h1>薪资管理</h1>
 
+        <!-- 搜索框 -->
+        <a-input-search
+          v-model:value="searchKeyword"
+          placeholder="请输入员工 ID"
+          enter-button="搜索"
+          @search="searchSalaries"
+          style="width: 300px; margin-bottom: 20px;"
+        />
+
         <!-- 新增薪资记录按钮 -->
         <a-button type="primary" @click="showAddModal">添加薪资记录</a-button>
 
         <!-- 薪资记录表格 -->
         <a-table
           :columns="columns"
-          :data-source="salaryRecords"
+          :data-source="filteredSalaryRecords"
           row-key="id"
           pagination
         >
@@ -84,6 +93,8 @@ export default {
   setup() {
     // 响应式数据
     const salaryRecords = ref([]);
+    const filteredSalaryRecords = ref([]); // 过滤后的薪资记录列表
+    const searchKeyword = ref(''); // 搜索关键词
     const isAddModalVisible = ref(false);
     const isEditModalVisible = ref(false);
     const addForm = ref({
@@ -114,8 +125,22 @@ export default {
       try {
         const response = await axios.get('/api/salaries');
         salaryRecords.value = response.data;
+        filteredSalaryRecords.value = response.data; // 初始化过滤后的薪资记录数据
       } catch (error) {
         message.error('获取薪资记录失败');
+      }
+    };
+
+    // 搜索薪资记录
+    const searchSalaries = () => {
+      if (!searchKeyword.value) {
+        filteredSalaryRecords.value = salaryRecords.value; // 如果没有关键词，显示所有薪资记录
+      } else {
+        filteredSalaryRecords.value = salaryRecords.value.filter((record) => {
+          return record.employeeId
+            .toLowerCase()
+            .includes(searchKeyword.value.toLowerCase());
+        });
       }
     };
 
@@ -183,6 +208,8 @@ export default {
 
     return {
       salaryRecords,
+      filteredSalaryRecords,
+      searchKeyword,
       isAddModalVisible,
       isEditModalVisible,
       addForm,
@@ -195,6 +222,7 @@ export default {
       cancelEditModal,
       editSalary,
       deleteSalary,
+      searchSalaries,
     };
   }
 };

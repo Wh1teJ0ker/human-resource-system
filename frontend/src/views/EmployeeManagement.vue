@@ -4,11 +4,20 @@
       <div class="employee-container">
         <h1>员工管理</h1>
 
+        <!-- 搜索框 -->
+        <a-input-search
+          v-model:value="searchKeyword"
+          placeholder="请输入员工姓名或职位"
+          enter-button="搜索"
+          @search="searchEmployees"
+          style="width: 300px; margin-bottom: 20px;"
+        />
+
         <!-- 添加员工按钮 -->
         <a-button type="primary" @click="showAddModal">添加员工</a-button>
 
         <!-- 员工列表 -->
-        <a-table :columns="columns" :data-source="employees" row-key="id">
+        <a-table :columns="columns" :data-source="filteredEmployees" row-key="id">
           <!-- 使用 v-slot:bodyCell 来定义操作列 -->
           <template #bodyCell="{ column, record }">
             <span v-if="column.dataIndex === 'action'">
@@ -54,6 +63,8 @@ export default {
   setup() {
     // 响应式数据
     const employees = ref([]);
+    const filteredEmployees = ref([]);
+    const searchKeyword = ref(''); // 搜索关键词
     const isModalVisible = ref(false);
     const form = ref({
       id: null,
@@ -65,6 +76,10 @@ export default {
 
     // 表格列配置
     const columns = [
+      {
+        title: '员工 ID',
+        dataIndex: 'id',
+      },
       {
         title: '姓名',
         dataIndex: 'name',
@@ -88,8 +103,23 @@ export default {
       try {
         const response = await axios.get('/api/employees');
         employees.value = response.data;
+        filteredEmployees.value = response.data; // 初始化过滤后的员工数据
       } catch (error) {
         message.error('获取员工列表失败');
+      }
+    };
+
+    // 搜索员工
+    const searchEmployees = () => {
+      if (!searchKeyword.value) {
+        filteredEmployees.value = employees.value; // 如果没有关键词，显示所有员工
+      } else {
+        filteredEmployees.value = employees.value.filter((employee) => {
+          return (
+            employee.name.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+            employee.position.toLowerCase().includes(searchKeyword.value.toLowerCase())
+          );
+        });
       }
     };
 
@@ -157,6 +187,8 @@ export default {
 
     return {
       employees,
+      filteredEmployees,
+      searchKeyword,
       isModalVisible,
       form,
       modalTitle,
@@ -166,6 +198,7 @@ export default {
       handleOk,
       handleCancel,
       deleteEmployee,
+      searchEmployees,
     };
   },
 };
@@ -183,5 +216,9 @@ h1 {
   font-weight: bold;
   margin-bottom: 20px;
   color: #001529;
+}
+
+.a-input-search {
+  margin-bottom: 20px;
 }
 </style>

@@ -4,6 +4,15 @@
       <div class="attendance-container">
         <h1>考勤管理</h1>
 
+        <!-- 搜索框 -->
+        <a-input-search
+          v-model:value="searchQuery"
+          placeholder="请输入员工ID或考勤日期进行搜索"
+          enter-button="搜索"
+          @search="handleSearch"
+          style="width: 300px; margin-bottom: 20px;"
+        />
+
         <!-- 添加考勤记录按钮 -->
         <a-button type="primary" @click="showAddModal">添加考勤记录</a-button>
 
@@ -94,6 +103,7 @@ export default {
       attendanceDate: '',
       attendanceStatus: 'present',
     });
+    const searchQuery = ref(''); // 搜索框的绑定值
 
     const columns = [
       {
@@ -114,9 +124,11 @@ export default {
       },
     ];
 
-    const fetchAttendanceRecords = async () => {
+    const fetchAttendanceRecords = async (query = '') => {
       try {
-        const response = await axios.get('/api/attendance');
+        const response = await axios.get('/api/attendance', {
+          params: { query }, // 传递搜索查询
+        });
         attendanceRecords.value = response.data.map((record) => ({
           ...record,
           attendanceDate: dayjs(record.attendanceDate).format('YYYY-MM-DD'),
@@ -124,6 +136,11 @@ export default {
       } catch (error) {
         message.error('获取考勤记录失败');
       }
+    };
+
+    // 搜索功能处理
+    const handleSearch = () => {
+      fetchAttendanceRecords(searchQuery.value);
     };
 
     const showAddModal = () => {
@@ -199,6 +216,7 @@ export default {
       isEditModalVisible,
       editForm,
       columns,
+      searchQuery,
       showAddModal,
       cancelAddModal,
       addAttendance,
@@ -206,6 +224,7 @@ export default {
       cancelEditModal,
       editAttendance,
       deleteAttendance,
+      handleSearch,
     };
   },
 };

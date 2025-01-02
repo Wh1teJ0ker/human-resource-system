@@ -3,8 +3,9 @@ package com.example.demo.hrms.model;
 public class Account {
     private String username;
     private String password;
+    private String role; // 角色信息
 
-    // Getters and Setters
+    // Getters 和 Setters
     public String getUsername() {
         return username;
     }
@@ -20,4 +21,9 @@ public class Account {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public String getRole() {
+        return role;
+    }
+
 }

@@ -44,6 +44,73 @@
 </template>
 
 <script>
+import axios from 'axios';
+
+export default {
+  name: 'LoginPage',
+  data() {
+    return {
+      loginForm: {
+        role: '', // 用户角色
+        username: '', // 用户名
+        password: '', // 密码
+      },
+      errorMessage: '', // 错误信息
+    };
+  },
+  methods: {
+    async handleLogin() {
+      // 校验表单
+      if (!this.loginForm.role) {
+        this.errorMessage = '请选择角色！';
+        return;
+      }
+
+      const requestData = {
+        username: this.loginForm.username,
+        password: this.loginForm.password,
+      };
+
+      try {
+        console.log('发送登录请求:', requestData);
+        // 向后端发送 POST 请求
+        const response = await axios.post('/api/account/login', requestData, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        console.log('登录响应:', response.data);
+
+        // 根据后端返回的 code 判断结果
+        if (response.data.code === '200') {
+          // 保存 token 和角色到 localStorage
+          const role = response.data.message.includes('ADMIN') ? 'ADMIN' : 'USER';
+          const token = 'backend-generated-token'; // 如果后端返回 token，可以替换为真实的 token
+          localStorage.setItem('authToken', token);
+          localStorage.setItem('userRole', role);
+          localStorage.setItem('username', this.loginForm.username); 
+
+          // 根据角色跳转到不同页面
+          if (role === 'ADMIN') {
+            this.$router.push({ name: 'dashboard' }); // 管理员页面
+          } else {
+            this.$router.push({ name: 'user' }); // 普通用户页面
+          }
+        } else if (response.data.code === '401') {
+          this.errorMessage = '用户名或密码错误！';
+        } else {
+          this.errorMessage = '服务器错误，请稍后再试！';
+        }
+      } catch (error) {
+        console.error('登录请求失败:', error);
+        this.errorMessage = '登录请求失败，请检查网络连接或稍后再试！';
+      }
+    },
+    goToRegister() {
+      this.$router.push({ name: 'register' }); // 跳转到注册页面
+    },
+  },
+};
+      /*
 export default {
   name: 'LoginPage',
   data() {
@@ -105,7 +172,7 @@ export default {
       this.$router.push({ name: 'register' });
     },
   },
-};
+};      */
 
 
       // 远程接口登录逻辑（可以启用以下代码）

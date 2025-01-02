@@ -7,7 +7,7 @@
       @select="handleMenuSelect"
     >
       <a-menu-item key="1">
-        <router-link to="/">
+        <router-link to="/dashboard">
           <a-icon type="dashboard" />
           <span>控制面板</span>
         </router-link>

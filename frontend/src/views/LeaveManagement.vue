@@ -4,11 +4,20 @@
       <div class="leave-container">
         <h1>请假管理</h1>
 
+        <!-- 搜索框 -->
+        <a-input-search
+          v-model:value="searchKeyword"
+          placeholder="请输入员工 ID 或请假类型"
+          enter-button="搜索"
+          @search="searchLeaveRecords"
+          style="width: 300px; margin-bottom: 20px;"
+        />
+
         <!-- 新增请假记录按钮 -->
         <a-button type="primary" @click="showAddModal">申请请假</a-button>
 
         <!-- 请假记录表格 -->
-        <a-table :columns="columns" :data-source="leaveRecords" row-key="id" pagination>
+        <a-table :columns="columns" :data-source="filteredLeaveRecords" row-key="id" pagination>
           <template #bodyCell="{ column, record }">
             <span v-if="column.dataIndex === 'action'">
               <!-- 编辑按钮 -->
@@ -115,6 +124,8 @@ export default {
   setup() {
     // 响应式数据
     const leaveRecords = ref([]);
+    const filteredLeaveRecords = ref([]); // 过滤后的请假记录列表
+    const searchKeyword = ref(''); // 搜索关键词
     const isAddModalVisible = ref(false);
     const isEditModalVisible = ref(false);
     const isApprovalModalVisible = ref(false);
@@ -153,8 +164,23 @@ export default {
       try {
         const response = await axios.get('/api/leaverequests');
         leaveRecords.value = response.data;
+        filteredLeaveRecords.value = response.data; // 初始化过滤后的请假记录数据
       } catch (error) {
         message.error('获取请假记录失败');
+      }
+    };
+
+    // 搜索请假记录
+    const searchLeaveRecords = () => {
+      if (!searchKeyword.value) {
+        filteredLeaveRecords.value = leaveRecords.value; // 如果没有关键词，显示所有请假记录
+      } else {
+        filteredLeaveRecords.value = leaveRecords.value.filter((record) => {
+          return (
+            record.employeeId.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
+            record.leaveType.toLowerCase().includes(searchKeyword.value.toLowerCase())
+          );
+        });
       }
     };
 
@@ -246,6 +272,8 @@ export default {
 
     return {
       leaveRecords,
+      filteredLeaveRecords,
+      searchKeyword,
       isAddModalVisible,
       isEditModalVisible,
       isApprovalModalVisible,
@@ -262,7 +290,8 @@ export default {
       showApprovalModal,
       cancelApprovalModal,
       approveLeave,
-      deleteLeave
+      deleteLeave,
+      searchLeaveRecords
     };
   }
 };
